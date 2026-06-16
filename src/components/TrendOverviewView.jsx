@@ -60,8 +60,8 @@ const CATEGORY_MAP = {
 
 export default function TrendOverviewView() {
   const [country, setCountryState] = useState('KR');
-  // Default selected categories (max 5)
-  const [selectedCategories, setSelectedCategories] = useState(['10', '20', '24', '27', '28']); 
+  // Default selected categories (max 7)
+  const [selectedCategories, setSelectedCategories] = useState(['10', '20', '24', '27', '28', '17', 'culture']); 
   const [loading, setLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
@@ -474,17 +474,17 @@ export default function TrendOverviewView() {
           </div>
         </div>
 
-        {/* Multi-Select Category Filters (Max 5) */}
+        {/* Multi-Select Category Filters (Max 7) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">비교 분석 카테고리 선택 (최대 5개)</span>
-            <span className="text-xs text-blue-400 font-semibold font-mono">{selectedCategories.length}/5 선택됨</span>
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">비교 분석 카테고리 선택 (최대 7개)</span>
+            <span className="text-xs text-blue-400 font-semibold font-mono">{selectedCategories.length}/7 선택됨</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {Object.keys(CATEGORY_MAP).map((catId) => {
               const catObj = CATEGORY_MAP[catId];
               const isSelected = selectedCategories.includes(catId);
-              const isMaxSelected = selectedCategories.length >= 5;
+              const isMaxSelected = selectedCategories.length >= 7;
               const disabled = !isSelected && isMaxSelected;
               return (
                 <button
@@ -496,7 +496,7 @@ export default function TrendOverviewView() {
                         setSelectedCategories(selectedCategories.filter(id => id !== catId));
                       }
                     } else {
-                      if (selectedCategories.length < 5) {
+                      if (selectedCategories.length < 7) {
                         setSelectedCategories([...selectedCategories, catId]);
                       }
                     }
