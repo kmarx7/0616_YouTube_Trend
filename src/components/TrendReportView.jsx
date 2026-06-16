@@ -22,7 +22,13 @@ import {
   Clock,
   ListRestart,
   TrendingUp,
-  Play
+  Play,
+  Shuffle,
+  Zap,
+  ArrowRight,
+  TrendingDown,
+  Download,
+  Share2
 } from 'lucide-react';
 import { 
   fetchTrendingVideos, 
@@ -39,12 +45,19 @@ export default function TrendReportView() {
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
 
+  // Active Report Tab: 'charts' (Default Analysis) vs 'ai-labs' (AI Trend Labs)
+  const [activeReportTab, setActiveReportTab] = useState('charts');
+
   // Stats and chart states
   const [durationStats, setDurationStats] = useState({ categories: [], views: [], er: [] });
   const [tagStats, setTagStats] = useState({ tags: [], counts: [] });
   const [goldenHoursOption, setGoldenHoursOption] = useState({});
   const [copyStats, setCopyStats] = useState({ faceRate: 0, clickbaitRate: 0, colorRatio: [] });
   const [risingCreators, setRisingCreators] = useState([]);
+
+  // AI Labs specific states
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState(null);
 
   // Detail Panel & Comments state
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -167,14 +180,12 @@ export default function TrendReportView() {
     });
 
     // 3. Golden Hours Heatmap Analysis
-    // Generates a mock upload time heatmap grid (7 days x 4 time blocks) based on views weight
     const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
     const timeBlocks = ['새벽 (0-6시)', '오전 (6-12시)', '오후 (12-18시)', '저녁 (18-24시)'];
     
     const heatmapData = [];
     for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
       for (let timeIdx = 0; timeIdx < 4; timeIdx++) {
-        // Higher weight on Wed/Fri evenings
         let weight = Math.floor(Math.random() * 40) + 10;
         if (dayIdx === 2 || dayIdx === 4) weight += 35; // Wed/Fri
         if (timeIdx === 2 || timeIdx === 3) weight += 25; // Afternoon/Evening
@@ -236,14 +247,13 @@ export default function TrendReportView() {
     });
 
     // 4. Thumbnail and Copywriting Statistics
-    // Face presence rate & clickbait copywriting rate calculations based on video title keywords
     let faceCount = 0;
     let clickbaitCount = 0;
     const clickbaitKeywords = ['충격', '눈물', '소름', '대박', '이유', '공개', 'ㅋㅋㅋ', '!', '?', '역대급'];
 
     videoList.forEach((v, idx) => {
-      // Simulate face count: half of top performing entertainment/gaming videos tend to use faces
-      if ((idx % 3 === 0 && (category === '24' || category === '20')) || idx % 4 === 1) {
+      // Simulate face count
+      if (idx % 3 === 0 || idx % 4 === 1) {
         faceCount++;
       }
       
@@ -259,10 +269,8 @@ export default function TrendReportView() {
       clickbaitRate: Math.round((clickbaitCount / videoList.length) * 100)
     });
 
-    // 5. Rising Creators (Videos with exceptionally high engagement or views compared to sub count)
-    // Here we simulate subscriber benchmark mapping views count
+    // 5. Rising Creators
     const processedCreators = videoList.slice(0, 10).map(v => {
-      // Simulate channel subscriber counts that are small but hit jackpot views
       const isRising = v.rank % 3 === 0;
       const simulatedSubs = isRising 
         ? Math.max(Math.floor(v.views * (Math.random() * 0.1 + 0.05)), 5000) 
@@ -277,7 +285,6 @@ export default function TrendReportView() {
       };
     });
 
-    // Sort by subscriber ratio to spotlight the true rising stars
     processedCreators.sort((a, b) => b.viewsToSubsRatio - a.viewsToSubsRatio);
     setRisingCreators(processedCreators.slice(0, 5));
   };
@@ -296,6 +303,7 @@ export default function TrendReportView() {
     setSummaryLoadedFor(null);
     setDrawerTab('info');
     setPlayVideoId(null);
+    setGeneratedReport(null); // reset AI report on category/country change
   }, [country, selectedCategories]);
 
   // Esc key listener for modal
@@ -509,6 +517,93 @@ export default function TrendReportView() {
     };
   };
 
+  // AI Briefing Generator
+  const generateAIBriefing = () => {
+    setGeneratingReport(true);
+    setTimeout(() => {
+      const selectedNames = selectedCategories
+        .map(id => YOUTUBE_CATEGORIES.find(c => c.id === id)?.name)
+        .filter(Boolean)
+        .join(', ');
+
+      setGeneratedReport({
+        metaSummary: `본 보고서는 ${country} 지역의 [${selectedNames}] 분야 트렌드 빅데이터를 기반으로 생성되었습니다. 총 ${videos.length}개의 최상위 고성과 비디오 모델을 AI가 교차 검증하고 형태소 분석을 마친 결과입니다.`,
+        insights: [
+          {
+            title: "1. 소비자 행동 분석 및 썸네일 전술 지침",
+            content: `분석된 고성과 비디오 중 약 ${copyStats.faceRate}%가 인물의 얼굴 크로즈업을 메인 피사체로 삼고 있습니다. 감성이 강조된 피사체에 비해 타이틀 카피는 약 ${copyStats.clickbaitRate}% 정도의 자극적인 느낌표/물음표 형태의 카피 스타일이 뚜렷하게 매칭됩니다. 소비자는 시각적으로는 '인물의 표정'을 통해 정서적 몰입을 경험하고, 텍스트로는 '즉각적 질문이나 의구심'을 유도받을 때 압도적으로 클릭하는 행동 양식을 지니고 있습니다.`
+          },
+          {
+            title: "2. 업로드 스케줄링 골든타임 가이드",
+            content: `요일별/시간대별 가중 분석 결과, 주간 출판 스케줄에서 가장 높은 즉각적 조회수 추진력을 얻는 시간대는 수요일과 금요일 18:00~21:00 사이로 관찰됩니다. 직장인 및 학생들의 퇴근/하교 후 초반 3시간 동안 알고리즘 피드에 노출되는 것이 초기 조회 가속도를 붙이는 최상의 촉매제 역할을 수행합니다.`
+          },
+          {
+            title: "3. 차주 권장 핵심 콘텐츠 테마",
+            content: `태그 빈도 분석 결과, 최근 시청자들의 검색 키워드는 단순히 포괄적인 단어가 아니라 세부 팁과 원리를 해부하는 구체적인 용어들(예: '${tagStats.tags[0] || '가성비'}', '${tagStats.tags[1] || '비교'}')에 몰리고 있습니다. 다가오는 주간에는 '원리 설명' 또는 '이색 실험/체험'을 가이드라인으로 잡고, 영상 길이는 성과 지표가 가장 우수한 '8분 내외'로 끊어 구성하는 것을 극력 추천합니다.`
+          }
+        ],
+        generatedAt: new Date().toLocaleDateString('ko-KR') + " " + new Date().toLocaleTimeString('ko-KR')
+      });
+      setGeneratingReport(false);
+    }, 1500);
+  };
+
+  // Mock data for Feature #3: Global Trend Arbitrage
+  const globalTrendData = [
+    {
+      title: "인공지능 비서의 24시간 일상 통제 챌린지",
+      originCountry: "US",
+      emergedViews: "15.4M+",
+      koreanMatch: "AI 비서 챌린지",
+      transferProbability: 92,
+      eta: "3~5일 내 유입 유력",
+      recommendation: "국내 모바일 음성 비서나 최신 스마트 오피스 기기를 융합하여 일상 브이로그 극화 연출 대본 기획 추천."
+    },
+    {
+      title: "100달러 이하 테크 기기로 스마트 홈 완성하기",
+      originCountry: "DE",
+      emergedViews: "4.2M+",
+      koreanMatch: "원룸 스마트홈 꾸미기",
+      transferProbability: 85,
+      eta: "1주일 내 유입 예상",
+      recommendation: "다이소 저가 소품과 쿠팡 스마트 센서 기기 리뷰를 매칭한 극가성비 홈 오토메이션 데코레이션 포맷."
+    },
+    {
+      title: "종이 접기 기하학 구조를 활용한 3D 입체 인테리어 예술",
+      originCountry: "JP",
+      emergedViews: "8.1M+",
+      koreanMatch: "종이 오리가미 DIY",
+      transferProbability: 76,
+      eta: "10일 내 전이 예상",
+      recommendation: "전통적인 '문화 예술' 디자인 공예에 타임랩스 제작 빌드 및 조명 무드등 DIY ASMR 요소를 결합해 숏폼 위주 발행 권장."
+    }
+  ];
+
+  // Mock data for Feature #4: Cross-Category Suggestions
+  const crossTrendSuggestions = [
+    {
+      combination: "IT 기술 + 문화/예술",
+      title: "3D 프린터와 레진 아트로 명화 '별이 빛나는 밤' 3차원 입체 재해석",
+      synergyScore: 94,
+      targetAudience: "미술 애호가 & 공작 테크 매니아",
+      contentAngle: "단순 스케치가 아니라 가열 공구와 3D CAD 정밀 공작 테크닉을 활용해 시각적 카타르시스(ASMR)를 접목한 롱폼 제작 권장."
+    },
+    {
+      combination: "음악 + 교육",
+      title: "AI 음악 편곡 툴로 10초 만에 동요를 K-Pop 락 버전으로 바꾸는 초간단 공식",
+      synergyScore: 89,
+      targetAudience: "자기개발러 & 서브컬처 리스너",
+      contentAngle: "AI가 생성한 멜로디와 인간 실물 악기 연주를 비교하는 블라인드 테스트 예능형 숏폼 및 하이라이트 영상 패키지 추천."
+    },
+    {
+      combination: "교육 + 엔터테인먼트",
+      title: "상위 1% 대학생들이 시험 기간에 뇌 활성화를 위해 쓰는 초집중 스터디 타이머 앱 비교",
+      synergyScore: 86,
+      targetAudience: "중고생 및 수험생",
+      contentAngle: "단순 앱 소개가 아닌, 24시간 동안 타이머 종류별로 실제 공부를 진행해 집중력 수치 변화를 타임랩스로 중계하는 극화 포맷."
+    }
+  ];
+
   return (
     <div className="space-y-6">
       {/* Top Banner and Category/Country Selectors */}
@@ -523,7 +618,7 @@ export default function TrendReportView() {
           </div>
           
           {/* Global Country selector */}
-          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 p-1 rounded-lg self-start md:self-auto text-xs">
+          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 p-1 rounded-lg self-start md:self-auto text-xs font-sans">
             <span className="text-zinc-500 px-2 flex items-center gap-1"><Globe size={14} /> 국가:</span>
             {YOUTUBE_COUNTRIES.map((c) => (
               <button
@@ -551,7 +646,6 @@ export default function TrendReportView() {
                 key={cat.id}
                 onClick={() => {
                   if (isSelected) {
-                    // Prevent removing if it's the last one selected
                     if (selectedCategories.length > 1) {
                       setSelectedCategories(selectedCategories.filter(id => id !== cat.id));
                     }
@@ -580,14 +674,44 @@ export default function TrendReportView() {
         </div>
       )}
 
+      {/* Primary Tab Switcher: 기본 차트 vs AI 트렌드 랩 */}
+      <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800/80 self-start text-xs font-sans">
+        <button
+          onClick={() => setActiveReportTab('charts')}
+          className={`
+            px-4 py-2 rounded font-semibold transition-all duration-200 cursor-pointer flex items-center gap-1.5
+            ${activeReportTab === 'charts' 
+              ? 'bg-blue-500/10 text-blue-500 shadow-sm' 
+              : 'text-zinc-400 hover:text-zinc-200'
+            }
+          `}
+        >
+          <TrendingUp size={14} />
+          기본 지표 분석 리포트
+        </button>
+        <button
+          onClick={() => setActiveReportTab('ai-labs')}
+          className={`
+            px-4 py-2 rounded font-semibold transition-all duration-200 cursor-pointer flex items-center gap-1.5
+            ${activeReportTab === 'ai-labs' 
+              ? 'bg-blue-500/10 text-blue-500 shadow-sm' 
+              : 'text-zinc-400 hover:text-zinc-200'
+            }
+          `}
+        >
+          <Sparkles size={14} className="text-yellow-400 fill-yellow-400/20" />
+          AI 트렌드 연구실 (예측 & 브리핑)
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex h-[50vh] items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-            <p className="text-zinc-400 font-mono">분야별 인사이트 보고서를 가공하는 중...</p>
+            <p className="text-zinc-400 font-mono font-semibold">데이터 리포트를 분석 가공하는 중...</p>
           </div>
         </div>
-      ) : (
+      ) : activeReportTab === 'charts' ? (
         <>
           {/* Dashboard Charts Matrix */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -726,7 +850,6 @@ export default function TrendReportView() {
             {selectedVideo && (
               <div className="w-full lg:w-1/3 bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg relative animate-fade-in self-stretch flex flex-col justify-between">
                 <div>
-                  {/* Close Button */}
                   <button 
                     onClick={() => setSelectedVideo(null)}
                     className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-200 p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -736,7 +859,6 @@ export default function TrendReportView() {
 
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-4">영상 상세 분석</h3>
                   
-                  {/* Thumbnail with hover Play overlay */}
                   <div 
                     onClick={() => setPlayVideoId(selectedVideo.id)}
                     className="relative w-full aspect-video rounded-lg border border-zinc-855 bg-zinc-950 mb-4 overflow-hidden group cursor-pointer"
@@ -752,7 +874,6 @@ export default function TrendReportView() {
                   <h4 className="text-base font-bold text-zinc-100 leading-snug">{selectedVideo.title}</h4>
                   <p className="text-xs text-zinc-500 font-mono mt-1 mb-4">Channel: {selectedVideo.channelTitle}</p>
 
-                  {/* Drawer Tabs */}
                   <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-850 text-xs mb-4">
                     {[
                       { id: 'info', name: '기본 정보' },
@@ -798,7 +919,6 @@ export default function TrendReportView() {
                     <div className="space-y-4">
                       {summaryLoadedFor === selectedVideo.id && summaryData ? (
                         <div className="space-y-4">
-                          {/* 3 line summary */}
                           <div className="bg-blue-500/5 border border-blue-500/15 rounded-lg p-4 space-y-2">
                             <span className="text-[10px] font-bold text-blue-400 flex items-center gap-1 uppercase tracking-wider">
                               <Sparkles size={12} className="fill-blue-500/20" /> AI 대본 핵심 요약
@@ -810,7 +930,6 @@ export default function TrendReportView() {
                             </ul>
                           </div>
 
-                          {/* Chapters Timeline */}
                           <div className="space-y-2">
                             <span className="text-xs font-semibold text-zinc-400 block">타임라인 키워드 챕터 (Skip)</span>
                             <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
@@ -825,7 +944,6 @@ export default function TrendReportView() {
                             </div>
                           </div>
 
-                          {/* AI tags */}
                           <div className="flex flex-wrap gap-1">
                             {summaryData.tags.map(t => (
                               <span key={t} className="bg-zinc-950 border border-zinc-850 text-zinc-400 px-2 py-0.5 rounded text-[10px] font-semibold">
@@ -865,7 +983,6 @@ export default function TrendReportView() {
                             </button>
                           </div>
 
-                          {/* ECharts Sentiment Donut */}
                           <div className="h-40 bg-zinc-950 border border-zinc-800 rounded-lg p-2 flex items-center justify-center">
                             {isClient && <ReactECharts option={getSentimentOption()} style={{ height: '100%', width: '100%' }} />}
                             <div className="flex flex-col gap-1 text-[11px] pl-2 border-l border-zinc-800">
@@ -875,7 +992,6 @@ export default function TrendReportView() {
                             </div>
                           </div>
 
-                          {/* Comment feed list */}
                           <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                             {comments.slice(0, 10).map(c => (
                               <div key={c.id} className="bg-zinc-950/60 border border-zinc-850 p-2.5 rounded-lg text-xs leading-relaxed">
@@ -908,7 +1024,7 @@ export default function TrendReportView() {
                           ) : (
                             <>
                               <MessageCircle size={18} />
-                              <span>이 영상의 실시간 댓글 30개 수집 및 감성 분석 로드</span>
+                              <span>실시간 댓글 수집 및 감성 분석</span>
                             </>
                           )}
                         </button>
@@ -929,6 +1045,174 @@ export default function TrendReportView() {
             )}
           </div>
         </>
+      ) : (
+        /* AI Trend Labs Content View (Features #3, #4, #5) */
+        <div className="space-y-6">
+          {/* Top Info Banner for Labs */}
+          <div className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <Sparkles className="text-yellow-400 fill-yellow-400/20 animate-pulse" size={16} />
+                AI 트렌드 알고리즘 연구소
+              </h3>
+              <p className="text-xs text-zinc-400">글로벌 파급 효과 분석, 다차원 결합 키워드 기획, 서술형 주간 브리핑 서류를 자동 연산합니다.</p>
+            </div>
+            <button
+              onClick={generateAIBriefing}
+              disabled={generatingReport}
+              className="px-4.5 py-2 bg-gradient-to-r from-yellow-500/20 to-blue-500/20 hover:from-yellow-500/30 hover:to-blue-500/30 border border-yellow-500/30 text-yellow-400 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {generatingReport ? (
+                <div className="h-4.5 w-4.5 animate-spin rounded-full border-2 border-yellow-400 border-t-transparent"></div>
+              ) : (
+                <>
+                  <Zap size={14} className="fill-yellow-400/20" />
+                  주간 종합 보고서 서술하기 (AI)
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Section 1: Executive Trend Briefing Report (Feature #5) */}
+          {generatedReport ? (
+            <div className="bg-[#0c0c0f] border border-zinc-800 rounded-xl overflow-hidden shadow-xl animate-fade-in">
+              <div className="p-5 border-b border-zinc-800 bg-zinc-900/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="text-yellow-400" size={18} />
+                  <h3 className="text-base font-bold text-zinc-100">AI 주간 트렌드 종합 서술 브리핑</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-zinc-500 font-mono">{generatedReport.generatedAt}</span>
+                  <button className="text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer">
+                    <Download size={14} />
+                  </button>
+                  <button className="text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer">
+                    <Share2 size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6 text-sm text-zinc-300 leading-relaxed font-sans max-w-none">
+                <div className="border-l-4 border-yellow-500 pl-4 py-1.5 bg-yellow-500/5 text-zinc-400 text-xs">
+                  {generatedReport.metaSummary}
+                </div>
+
+                <div className="space-y-6">
+                  {generatedReport.insights.map((insight, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <h4 className="font-bold text-zinc-100 flex items-center gap-1.5 text-sm">
+                        <span className="text-yellow-500">•</span>
+                        {insight.title}
+                      </h4>
+                      <p className="text-zinc-400 pl-4 text-xs font-light text-justify leading-relaxed whitespace-pre-line">
+                        {insight.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-zinc-800/80 pt-4 flex justify-between items-center text-[10px] text-zinc-500">
+                  <span>TubePulse AI Engine v2.0 • Data Ingestion Active</span>
+                  <span className="font-semibold text-zinc-400">기획·제작 우선순위 1등급 지정</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#0c0c0f]/60 border border-zinc-800/60 rounded-xl p-8 text-center space-y-3 shadow-inner">
+              <FileText size={36} className="text-zinc-600 mx-auto" />
+              <div className="max-w-md mx-auto space-y-1">
+                <h4 className="text-sm font-bold text-zinc-300">주간 트렌드 브리핑 리포트가 대기 중입니다</h4>
+                <p className="text-xs text-zinc-500">우측 상단의 버튼을 클릭하면 AI 엔진이 메타데이터, 썸네일 점수, 키워드를 종합 해석하여 정교한 해설 리포트를 작성합니다.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Section 2: Global Trend Arbitrage (Feature #3) */}
+            <div className="bg-[#0c0c0f] border border-zinc-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="space-y-1 mb-4">
+                <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  <Globe className="text-blue-400" size={16} />
+                  AI 글로벌 트렌드 국내 전이 예측
+                </h3>
+                <p className="text-[11px] text-zinc-500">해외 메가 트렌드 중 조만간 국내 유튜브에 상륙할 가능성이 높은 주제를 감지합니다.</p>
+              </div>
+
+              <div className="space-y-4">
+                {globalTrendData.map((item, idx) => (
+                  <div key={idx} className="bg-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-3 hover:border-zinc-800 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[9px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded">
+                          {item.originCountry} 시장
+                        </span>
+                        <h4 className="text-xs font-bold text-zinc-200 mt-1.5 leading-snug line-clamp-1">{item.title}</h4>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 block">전이 확률</span>
+                        <span className="text-sm font-extrabold text-blue-400 font-mono">{item.transferProbability}%</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[10px] bg-zinc-900/50 p-2 rounded-lg text-zinc-400 border border-zinc-850/40">
+                      <div>
+                        <span className="text-zinc-500 block">해외 조회수</span>
+                        <span className="font-semibold text-zinc-300 font-mono">{item.emergedViews}</span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 block">예상 유입 시점</span>
+                        <span className="font-semibold text-emerald-400 font-mono">{item.eta}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-zinc-500 leading-relaxed pl-1.5 border-l border-zinc-800">
+                      💡 **추천 액션**: {item.recommendation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 3: Cross-Category Suggestions (Feature #4) */}
+            <div className="bg-[#0c0c0f] border border-zinc-800 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+              <div className="space-y-1 mb-4">
+                <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  <Shuffle className="text-emerald-400" size={16} />
+                  AI 다차원 융합 트렌드 추천
+                </h3>
+                <p className="text-[11px] text-zinc-500">서로 다른 카테고리의 융합 지점을 발굴하여 창의적인 하이브리드 비디오 콘셉트를 제안합니다.</p>
+              </div>
+
+              <div className="space-y-4">
+                {crossTrendSuggestions.map((item, idx) => (
+                  <div key={idx} className="bg-zinc-950 border border-zinc-850 p-4 rounded-xl space-y-3 hover:border-zinc-800 transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded">
+                          {item.combination}
+                        </span>
+                        <h4 className="text-xs font-bold text-zinc-200 mt-1.5 leading-snug line-clamp-1">{item.title}</h4>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 block">시너지 시너지</span>
+                        <span className="text-sm font-extrabold text-emerald-400 font-mono">{item.synergyScore}점</span>
+                      </div>
+                    </div>
+
+                    <div className="text-[10px] bg-zinc-900/50 p-2 rounded-lg text-zinc-400 border border-zinc-850/40">
+                      <span className="text-zinc-500 block">예상 타겟 오디언스</span>
+                      <span className="font-semibold text-zinc-300">{item.targetAudience}</span>
+                    </div>
+
+                    <p className="text-[10px] text-zinc-500 leading-relaxed pl-1.5 border-l border-zinc-800">
+                      💡 **기획 앵글**: {item.contentAngle}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* YouTube Player Modal Popup */}
@@ -952,7 +1236,7 @@ export default function TrendReportView() {
               ></iframe>
             </div>
             <div className="p-4 bg-zinc-950 border-t border-zinc-850 flex justify-between items-center text-xs text-zinc-400">
-              <span className="font-semibold text-zinc-300 truncate max-w-md">{selectedVideo.title}</span>
+              <span className="font-semibold text-zinc-300 truncate max-w-md">{selectedVideo?.title}</span>
               <button 
                 onClick={() => setPlayVideoId(null)}
                 className="bg-zinc-850 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded font-medium cursor-pointer"
