@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
+  
+  /* Zinc-based color palette */
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #0c0c0f;
+  --color-zinc-800: #1e1e24;
+  --color-zinc-700: #2e3039;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  
+  /* Primary blue accent */
+  --color-blue-500: #2563eb;
+  --color-blue-600: #1d4ed8;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #09090b;
+  color: #fafafa;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #2e3039;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
+}
+
+/* Animation Utilities */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
