@@ -137,6 +137,7 @@ export const getMockTrendingTop100 = (country, categoryId) => {
       comments: commentsCount,
       duration: template.duration,
       categoryId: category,
+      tags: [template.title.split(' ')[0].replace('[', '').replace(']', ''), pref.suffix, '추천', '실시간'],
       engagementRate: parseFloat(((likes + commentsCount) / viewsClean * 100).toFixed(2))
     };
   });
@@ -435,6 +436,7 @@ export const getMockKeywordSearch = (query, country) => {
       comments: commentsCount,
       duration: randomRange(180, 1500),
       categoryId: category,
+      tags: [keyword, categoryNames[category], '추천템', '리뷰'],
       engagementRate: parseFloat(((likes + commentsCount) / viewsClean * 100).toFixed(2))
     };
   });

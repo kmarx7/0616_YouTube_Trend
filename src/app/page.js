@@ -6,7 +6,7 @@ import DashboardView from '../components/DashboardView';
 import TrendOverviewView from '../components/TrendOverviewView';
 import KeywordSearchView from '../components/KeywordSearchView';
 import TrendingView from '../components/TrendingView';
-import EducationView from '../components/EducationView';
+import TrendReportView from '../components/TrendReportView';
 import CompetitorsView from '../components/CompetitorsView';
 import SettingsView from '../components/SettingsView';
 
@@ -24,8 +24,8 @@ export default function Home() {
         return <KeywordSearchView />;
       case 'trending':
         return <TrendingView />;
-      case 'education':
-        return <EducationView />;
+      case 'trend-report':
+        return <TrendReportView />;
       case 'competitors':
         return <CompetitorsView />;
       case 'settings':

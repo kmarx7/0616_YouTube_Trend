@@ -136,6 +136,7 @@ export const fetchTrendingVideos = async (categoryId = 'all') => {
         comments,
         duration: durationSec,
         categoryId: item.snippet.categoryId,
+        tags: item.snippet.tags || [],
         engagementRate: views > 0 ? parseFloat((((likes + comments) / views) * 100).toFixed(2)) : 0
       };
     });
@@ -414,6 +415,7 @@ export const fetchVideosByKeyword = async (query) => {
         comments: commentsCount,
         duration: durationSec,
         categoryId: item.snippet.categoryId,
+        tags: item.snippet.tags || [],
         engagementRate: views > 0 ? parseFloat((((likes + commentsCount) / views) * 100).toFixed(2)) : 0
       };
     });
