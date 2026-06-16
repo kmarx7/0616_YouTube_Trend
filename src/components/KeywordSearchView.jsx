@@ -470,38 +470,13 @@ export default function KeywordSearchView() {
           </div>
         </div>
       ) : activeQuery === '' ? (
-        /* Empty State with recommendations and center search bar */
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 max-w-lg mx-auto">
+        /* Empty State with recommendations */
+        <div className="flex flex-col items-center justify-center py-24 text-center space-y-6 max-w-lg mx-auto">
           <HelpCircle className="text-zinc-700 animate-pulse animate-duration-3000" size={56} />
           <div>
             <h2 className="text-xl font-bold text-zinc-300">트렌드 키워드를 검색해보세요</h2>
             <p className="text-zinc-500 text-sm mt-1">유튜브 상의 실시간 검색어 성과 지표와 분야별 분포도를 대시보드로 시각화해 줍니다.</p>
           </div>
-
-          {/* Added search bar directly in the empty state */}
-          <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3.5 top-3 text-zinc-400" size={18} />
-              <input
-                type="text"
-                placeholder="분석할 키워드를 입력하세요..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg pl-11 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200 placeholder-zinc-500"
-              />
-            </div>
-            <button 
-              type="submit"
-              disabled={loading}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-800 text-white rounded-lg px-6 font-semibold text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              {loading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-              ) : (
-                '분석'
-              )}
-            </button>
-          </form>
           
           <div className="space-y-2.5 pt-4 w-full">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">또는 추천 키워드 선택</span>
