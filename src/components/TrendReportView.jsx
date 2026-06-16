@@ -34,7 +34,7 @@ import { YOUTUBE_COUNTRIES, YOUTUBE_CATEGORIES } from '../utils/mockData';
 
 export default function TrendReportView() {
   const [country, setCountryState] = useState('KR');
-  const [category, setCategory] = useState('10'); // Default to Music
+  const [selectedCategories, setSelectedCategories] = useState(['10']); // Default to Music
   const [loading, setLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
@@ -73,10 +73,33 @@ export default function TrendReportView() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch trending videos for the selected category
-      const data = await fetchTrendingVideos(category);
-      setVideos(data);
-      analyzeCategoryTrends(data);
+      if (selectedCategories.length === 0) {
+        setVideos([]);
+        setDurationStats({ categories: [], views: [], er: [] });
+        setTagStats({ tags: [], counts: [] });
+        setRisingCreators([]);
+        return;
+      }
+
+      // Fetch trending videos for all selected categories in parallel
+      const promises = selectedCategories.map(catId => fetchTrendingVideos(catId));
+      const results = await Promise.all(promises);
+      
+      // Merge results and remove duplicates by video id
+      const seen = new Set();
+      const combined = [];
+      results.flat().forEach(video => {
+        if (!seen.has(video.id)) {
+          seen.add(video.id);
+          combined.push(video);
+        }
+      });
+
+      // Sort by views descending to show top performing videos first
+      combined.sort((a, b) => b.views - a.views);
+
+      setVideos(combined);
+      analyzeCategoryTrends(combined);
     } catch (err) {
       setError(err.message || '카테고리 트렌드 분석 보고서를 불러오는데 실패했습니다.');
     } finally {
@@ -273,7 +296,7 @@ export default function TrendReportView() {
     setSummaryLoadedFor(null);
     setDrawerTab('info');
     setPlayVideoId(null);
-  }, [country, category]);
+  }, [country, selectedCategories]);
 
   // Esc key listener for modal
   useEffect(() => {
@@ -519,22 +542,35 @@ export default function TrendReportView() {
           </div>
         </div>
 
-        {/* Category Selector Pills */}
+        {/* Category Selector Pills (Multi-Select Enabled) */}
         <div className="flex flex-wrap gap-1.5 pt-2">
-          {YOUTUBE_CATEGORIES.filter(cat => cat.id !== 'all').map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer
-                ${category === cat.id
-                  ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-sm'
-                  : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-                }
-              `}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {YOUTUBE_CATEGORIES.filter(cat => cat.id !== 'all').map((cat) => {
+            const isSelected = selectedCategories.includes(cat.id);
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  if (isSelected) {
+                    // Prevent removing if it's the last one selected
+                    if (selectedCategories.length > 1) {
+                      setSelectedCategories(selectedCategories.filter(id => id !== cat.id));
+                    }
+                  } else {
+                    setSelectedCategories([...selectedCategories, cat.id]);
+                  }
+                }}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5
+                  ${isSelected
+                    ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.05)] font-bold'
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                  }
+                `}
+              >
+                {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>}
+                {cat.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
