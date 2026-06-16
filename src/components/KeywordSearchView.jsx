@@ -21,7 +21,8 @@ import {
   Frown,
   Clock,
   ListRestart,
-  HelpCircle
+  HelpCircle,
+  Play
 } from 'lucide-react';
 import { 
   fetchVideosByKeyword, 
@@ -71,6 +72,9 @@ export default function KeywordSearchView() {
   const [summaryData, setSummaryData] = useState(null);
   const [summaryLoadedFor, setSummaryLoadedFor] = useState(null);
 
+  // Video Player Popup Modal state
+  const [playVideoId, setPlayVideoId] = useState(null);
+
   // Table pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -80,6 +84,15 @@ export default function KeywordSearchView() {
 
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // Esc key down listener for video modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setPlayVideoId(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleSearchSubmit = async (e, keywordOverride = '') => {
@@ -195,6 +208,7 @@ export default function KeywordSearchView() {
       setCommentsLoadedFor(null);
       setSummaryData(null);
       setSummaryLoadedFor(null);
+      setPlayVideoId(null); // Reset player
     }
   };
 
@@ -672,7 +686,20 @@ export default function KeywordSearchView() {
                   </button>
 
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-zinc-400 mb-4">영상 상세 분석</h3>
-                  <img src={selectedVideo.thumbnail} alt={selectedVideo.title} className="w-full aspect-video object-cover rounded-lg border border-zinc-800 bg-zinc-950 mb-4" />
+                  
+                  {/* Thumbnail with hover Play overlay */}
+                  <div 
+                    onClick={() => setPlayVideoId(selectedVideo.id)}
+                    className="relative w-full aspect-video rounded-lg border border-zinc-850 bg-zinc-950 mb-4 overflow-hidden group cursor-pointer"
+                  >
+                    <img src={selectedVideo.thumbnail} alt={selectedVideo.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-102" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-red-600 text-white p-3 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <Play size={20} fill="currentColor" />
+                      </div>
+                    </div>
+                  </div>
+
                   <h4 className="text-base font-bold text-zinc-100 leading-snug">{selectedVideo.title}</h4>
                   <p className="text-xs text-zinc-500 font-mono mt-1 mb-4">Channel: {selectedVideo.channelTitle}</p>
 
@@ -853,6 +880,39 @@ export default function KeywordSearchView() {
             )}
           </div>
         </>
+      )}
+
+      {/* YouTube Player Modal Popup */}
+      {playVideoId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl max-w-3xl w-full mx-4 relative">
+            <button 
+              onClick={() => setPlayVideoId(null)}
+              className="absolute -top-8 right-0 text-zinc-400 hover:text-zinc-200 p-1 flex items-center gap-1 text-xs cursor-pointer"
+            >
+              <X size={14} /> 닫기 (Esc)
+            </button>
+            <div className="aspect-video w-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${playVideoId}?autoplay=1`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              ></iframe>
+            </div>
+            <div className="p-4 bg-zinc-950 border-t border-zinc-850 flex justify-between items-center text-xs text-zinc-400">
+              <span className="font-semibold text-zinc-300 truncate max-w-md">{selectedVideo.title}</span>
+              <button 
+                onClick={() => setPlayVideoId(null)}
+                className="bg-zinc-850 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded font-medium cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
