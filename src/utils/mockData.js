@@ -11,7 +11,18 @@ export const YOUTUBE_CATEGORIES = [
   { id: '24', name: '엔터테인먼트 (Entertainment)' },
   { id: '28', name: '과학기술 (Science & Tech)' },
   { id: '27', name: '교육 (Education)' },
-  { id: '17', name: '스포츠 (Sports)' }
+  { id: '17', name: '스포츠 (Sports)' },
+  { id: 'beauty', name: '뷰티 & 패션' },
+  { id: 'cooking', name: '푸드 & 쿠킹' },
+  { id: 'travel', name: '여행 & 아웃도어' },
+  { id: 'tech', name: '테크 & 스마트 디바이스' },
+  { id: 'finance', name: '금융 & 재테크' },
+  { id: 'selfdev', name: '자기계발 & 생산성' },
+  { id: 'pets', name: '반려동물 & 애완동물' },
+  { id: 'media', name: '영화 & 드라마 리뷰' },
+  { id: 'health', name: '건강 & 피트니스' },
+  { id: 'kids', name: '키즈 & 패밀리' },
+  { id: 'culture', name: '문화 & 예술' }
 ];
 
 // Mock database of countries
@@ -108,7 +119,29 @@ export const getMockTrendingTop100 = (country, categoryId) => {
     { title: `프리미어리그 득점왕 활약상 단독 카메라 하이라이트`, cat: '17', duration: 480 },
     { title: `이주의 레전드 명경기 끝장 승부 요약본`, cat: '17', duration: 840 },
     { title: `10분 만에 마스터하는 핵심 물리학 기초 이론`, cat: '27', duration: 600 },
-    { title: `비전공자도 단숨에 이해하는 컴퓨터 구조 입문 특강`, cat: '27', duration: 750 }
+    { title: `비전공자도 단숨에 이해하는 컴퓨터 구조 입문 특강`, cat: '27', duration: 750 },
+    { title: `올해 유행할 역대급 트렌치 코트 OOTD 코디 5가지`, cat: 'beauty', duration: 450 },
+    { title: `여름철 쿨톤 찰떡 데일리 메이크업 꿀팁 방출`, cat: 'beauty', duration: 620 },
+    { title: `삼겹살보다 맛있는 초간단 돼지고기 요리 레시피`, cat: 'cooking', duration: 510 },
+    { title: `편의점 신상 라면 조합 꿀맛 쿡방 챌린지`, cat: 'cooking', duration: 780 },
+    { title: `여권만 들고 떠난 스위스 7박 8일 배낭여행 브이로그`, cat: 'travel', duration: 1800 },
+    { title: `이 돈이면 무조건 가야할 요즘 뜨는 캠핑 차박 명소`, cat: 'travel', duration: 960 },
+    { title: `아이폰 신형 스펙 상세 리뷰 - 살까 말까 정해드림`, cat: 'tech', duration: 810 },
+    { title: `가성비 끝판왕 무선 이어폰 성능 비교 종결`, cat: 'tech', duration: 650 },
+    { title: `연 12% 배당 수익률? 은퇴 자금 모으는 주식 투자 전략`, cat: 'finance', duration: 1020 },
+    { title: `부자가 되는 습관 - 사회초년생 재테크 기본기`, cat: 'finance', duration: 890 },
+    { title: `성공한 사람들의 아침 루틴 - 인생을 바꾸는 시간 관리`, cat: 'selfdev', duration: 580 },
+    { title: `ChatGPT로 매일 1시간 업무 시간 단축하는 노하우`, cat: 'selfdev', duration: 710 },
+    { title: `주인 퇴근하자 난리난 꼬마 강아지의 반응 ㅋㅋㅋ`, cat: 'pets', duration: 180 },
+    { title: `새끼 길고양이를 임시 보호한 지 벌써 3개월 차`, cat: 'pets', duration: 320 },
+    { title: `반전 결말! 극장에서 안 보면 후회할 넷플릭스 신작 리뷰`, cat: 'media', duration: 730 },
+    { title: `소름 돋는 떡밥 회수 - 이번 주 화제 드라마 결말 분석`, cat: 'media', duration: 590 },
+    { title: `집에서 15분 만에 끝내는 전신 칼로리 폭탄 유산소 운동`, cat: 'health', duration: 900 },
+    { title: `체지방만 빼는 다이어트 식단 장보기 꿀팁`, cat: 'health', duration: 430 },
+    { title: `신상 로봇 장난감 조립하고 언박싱 챌린지`, cat: 'kids', duration: 620 },
+    { title: `초보 부모도 눈물 흘리며 공감하는 현실 육아 브이로그`, cat: 'kids', duration: 980 },
+    { title: `도슨트가 설명해주는 루브르 미술관 핵심 전시 관람 꿀팁`, cat: 'culture', duration: 1240 },
+    { title: `한 번 들으면 전율 돋는 클래식 명곡 해설`, cat: 'culture', duration: 1560 }
   ];
 
   // Map to 100 items by repeating or generating dynamically

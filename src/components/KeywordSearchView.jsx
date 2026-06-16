@@ -22,7 +22,13 @@ import {
   Clock,
   ListRestart,
   HelpCircle,
-  Play
+  Play,
+  Utensils,
+  Compass,
+  Smartphone,
+  Coins,
+  Activity,
+  Palette
 } from 'lucide-react';
 import { 
   fetchVideosByKeyword, 
@@ -38,7 +44,18 @@ const CATEGORY_MAP = {
   '24': { name: '엔터테인먼트', icon: Tv, color: '#ef4444' },
   '27': { name: '교육', icon: BookOpen, color: '#3b82f6' },
   '28': { name: '과학기술', icon: Atom, color: '#10b981' },
-  '17': { name: '스포츠', icon: Trophy, color: '#f59e0b' }
+  '17': { name: '스포츠', icon: Trophy, color: '#f59e0b' },
+  beauty: { name: '뷰티 & 패션', icon: Sparkles, color: '#f43f5e' },
+  cooking: { name: '푸드 & 쿠킹', icon: Utensils, color: '#ea580c' },
+  travel: { name: '여행 & 아웃도어', icon: Compass, color: '#06b6d4' },
+  tech: { name: '테크 & 디바이스', icon: Smartphone, color: '#6366f1' },
+  finance: { name: '금융 & 재테크', icon: Coins, color: '#10b981' },
+  selfdev: { name: '자기계발 & 생산성', icon: Sparkles, color: '#f59e0b' },
+  pets: { name: '반려동물 & 애완동물', icon: Smile, color: '#84cc16' },
+  media: { name: '영화 & 드라마 리뷰', icon: Tv, color: '#a855f7' },
+  health: { name: '건강 & 피트니스', icon: Activity, color: '#06b6d4' },
+  kids: { name: '키즈 & 패밀리', icon: Smile, color: '#fbbf24' },
+  culture: { name: '문화 & 예술', icon: Palette, color: '#d946ef' }
 };
 
 const SUGGESTED_KEYWORDS = ['인공지능', '캠핑', '아이폰', '재테크', '해외여행', '스마트폰'];

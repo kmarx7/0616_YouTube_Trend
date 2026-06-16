@@ -75,9 +75,35 @@ export const verifyApiKey = async (apiKey) => {
 export const fetchTrendingVideos = async (categoryId = 'all') => {
   const apiKey = getApiKey();
   const country = getCountry();
+  const isCustomCategory = categoryId !== 'all' && isNaN(Number(categoryId));
 
   if (!apiKey) {
     return getMockTrendingTop100(country, categoryId);
+  }
+
+  // If it's a custom keyword-based category, we fetch via keyword search since mostPopular doesn't support custom categories
+  if (isCustomCategory) {
+    const categoryKeywords = {
+      beauty: '뷰티 메이크업 패션 OOTD',
+      cooking: '요리 레시피 쿡방 맛집',
+      travel: '여행 캠핑 세계여행 브이로그',
+      tech: '스마트폰 테크 리뷰 IT기기',
+      finance: '재테크 주식 투자 부동산',
+      selfdev: '자기계발 생산성 동기부여',
+      pets: '강아지 고양이 반려동물',
+      media: '영화 리뷰 드라마 요약',
+      health: '피트니스 다이어트 홈트',
+      kids: '장난감 육아 어린이',
+      culture: '미술 전시회 예술 클래식 뮤지컬'
+    };
+    const keyword = categoryKeywords[categoryId] || categoryId;
+    try {
+      const results = await fetchVideosByKeyword(keyword);
+      return results.map(v => ({ ...v, categoryId }));
+    } catch (e) {
+      console.error('Custom category search fetch error:', e);
+      return getMockTrendingTop100(country, categoryId);
+    }
   }
 
   try {
