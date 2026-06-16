@@ -20,7 +20,8 @@ import {
   Frown,
   BookOpen,
   Sparkles,
-  ListRestart
+  ListRestart,
+  Search
 } from 'lucide-react';
 import { 
   fetchTrendingVideos, 
@@ -36,6 +37,9 @@ export default function TrendingView() {
   const [loading, setLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
+  
+  // Search within category list
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Detail Panel & Comments state
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -85,6 +89,7 @@ export default function TrendingView() {
     setSummaryLoadedFor(null);
     setDrawerTab('info');
     setCurrentPage(1);
+    setSearchTerm(''); // Reset search on category/country change
   }, [country, category]);
 
   const handleCountryChange = (code) => {
@@ -213,11 +218,18 @@ export default function TrendingView() {
     };
   };
 
-  // Pagination
-  const totalPages = Math.ceil(videos.length / itemsPerPage);
+  // Local Search Filter
+  const filteredVideos = videos.filter(video => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return true;
+    return video.title.toLowerCase().includes(term) || video.channelTitle.toLowerCase().includes(term);
+  });
+
+  // Pagination based on filtered results
+  const totalPages = Math.ceil(filteredVideos.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVideos = videos.slice(indexOfFirstItem, indexOfLastItem);
+  const currentVideos = filteredVideos.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-6">
@@ -284,17 +296,43 @@ export default function TrendingView() {
           w-full bg-[#0c0c0f] border border-zinc-800 rounded-xl overflow-hidden transition-all duration-300
           ${selectedVideo ? 'lg:w-2/3' : 'lg:w-full'}
         `}>
-          <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/10">
-            <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-              급상승 순위 목록
-            </h3>
-            <span className="text-xs text-zinc-500 font-mono">Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, videos.length)} of {videos.length}</span>
+          {/* Table Header and Search Bar (Feature Requirement) */}
+          <div className="p-6 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/10">
+            <div>
+              <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+                급상승 순위 목록
+              </h3>
+              <span className="text-xs text-zinc-500 font-mono">Showing {filteredVideos.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, filteredVideos.length)} of {filteredVideos.length}</span>
+            </div>
+
+            {/* Local Search Input within Category */}
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-2.5 text-zinc-500" size={16} />
+              <input
+                type="text"
+                placeholder="현재 목록 내 검색 (제목, 채널)..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset page on type
+                }}
+                className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
           </div>
 
           {loading ? (
             <div className="p-20 text-center text-zinc-500 font-mono">로딩 중...</div>
-          ) : videos.length === 0 ? (
-            <div className="p-20 text-center text-zinc-500">조회된 급상승 영상이 없습니다.</div>
+          ) : filteredVideos.length === 0 ? (
+            <div className="p-20 text-center text-zinc-500">검색어 및 카테고리에 해당하는 급상승 영상이 없습니다.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
