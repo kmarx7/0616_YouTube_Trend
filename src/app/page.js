@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
 import TrendOverviewView from '../components/TrendOverviewView';
+import KeywordSearchView from '../components/KeywordSearchView';
 import TrendingView from '../components/TrendingView';
 import EducationView from '../components/EducationView';
 import CompetitorsView from '../components/CompetitorsView';
@@ -19,6 +20,8 @@ export default function Home() {
         return <DashboardView />;
       case 'trend-overview':
         return <TrendOverviewView />;
+      case 'keyword-search':
+        return <KeywordSearchView />;
       case 'trending':
         return <TrendingView />;
       case 'education':

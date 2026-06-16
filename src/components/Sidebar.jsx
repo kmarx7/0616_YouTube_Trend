@@ -7,7 +7,8 @@ import {
   Settings, 
   Menu,
   X,
-  TrendingUp
+  TrendingUp,
+  Search
 } from 'lucide-react';
 
 const YoutubeLogo = ({ size = 24, className }) => (
@@ -25,6 +26,7 @@ const YoutubeLogo = ({ size = 24, className }) => (
 export default function Sidebar({ activeTab, setActiveTab, mobileOpen, setMobileOpen }) {
   const menuItems = [
     { id: 'trend-overview', name: '트렌드 오버뷰', icon: TrendingUp },
+    { id: 'keyword-search', name: '키워드 트렌드', icon: Search },
     { id: 'dashboard', name: '채널 분석', icon: BarChart2 },
     { id: 'trending', name: '급상승 TOP 100', icon: Flame },
     { id: 'education', name: '교육 TOP 30', icon: GraduationCap },
