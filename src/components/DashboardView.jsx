@@ -210,25 +210,25 @@ export default function DashboardView() {
   return (
     <div className="space-y-6">
       {/* Header and Search */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-6">
+      <div className="flex flex-col gap-5 border-b border-zinc-800 pb-6">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-50">채널 분석 대시보드</h1>
           <p className="text-zinc-400 text-sm mt-1">지정한 유튜브 채널의 상세 퍼포먼스와 콘텐츠 전략을 시각화합니다.</p>
         </div>
-        <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-          <div className="relative flex-grow md:w-64">
-            <Search className="absolute left-3 top-2.5 text-zinc-500" size={18} />
+        <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-xl">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3.5 top-3 text-zinc-500" size={18} />
             <input
               type="text"
               placeholder="채널명 또는 핸들(ID) 입력..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200"
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg pl-11 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200 placeholder-zinc-500"
             />
           </div>
           <button 
             type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors shadow-sm cursor-pointer"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-6 font-semibold text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center"
           >
             분석
           </button>
