@@ -29,7 +29,7 @@ export default function Sidebar({ activeTab, setActiveTab, mobileOpen, setMobile
     { id: 'keyword-search', name: '키워드 트렌드', icon: Search },
     { id: 'dashboard', name: '채널 분석', icon: BarChart2 },
     { id: 'trending', name: '급상승 TOP 100', icon: Flame },
-    { id: 'trend-report', name: '분야별 분석보고서', icon: FileText },
+    { id: 'trend-report', name: '분야별 AI 분석 보고서', icon: FileText },
     { id: 'competitors', name: '경쟁 채널 분석', icon: Users },
     { id: 'settings', name: '설정', icon: Settings },
   ];

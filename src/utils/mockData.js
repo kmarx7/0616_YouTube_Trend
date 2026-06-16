@@ -6,23 +6,23 @@ const randomRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + 
 // Mock database of video categories
 export const YOUTUBE_CATEGORIES = [
   { id: 'all', name: '전체' },
-  { id: '10', name: '음악 (Music)' },
-  { id: '20', name: '게임 (Gaming)' },
-  { id: '24', name: '엔터테인먼트 (Entertainment)' },
-  { id: '28', name: '과학기술 (Science & Tech)' },
-  { id: '27', name: '교육 (Education)' },
-  { id: '17', name: '스포츠 (Sports)' },
-  { id: 'beauty', name: '뷰티 & 패션' },
-  { id: 'cooking', name: '푸드 & 쿠킹' },
-  { id: 'travel', name: '여행 & 아웃도어' },
-  { id: 'tech', name: '테크 & 스마트 디바이스' },
-  { id: 'finance', name: '금융 & 재테크' },
-  { id: 'selfdev', name: '자기계발 & 생산성' },
-  { id: 'pets', name: '반려동물 & 애완동물' },
-  { id: 'media', name: '영화 & 드라마 리뷰' },
-  { id: 'health', name: '건강 & 피트니스' },
-  { id: 'kids', name: '키즈 & 패밀리' },
-  { id: 'culture', name: '문화 & 예술' }
+  { id: '10', name: '음악' },
+  { id: '20', name: '게임' },
+  { id: '24', name: '엔터테인먼트' },
+  { id: '28', name: '과학기술' },
+  { id: '27', name: '교육' },
+  { id: '17', name: '스포츠' },
+  { id: 'beauty', name: '뷰티/패션' },
+  { id: 'cooking', name: '푸드/쿠킹' },
+  { id: 'travel', name: '여행/레저' },
+  { id: 'tech', name: '테크/IT기기' },
+  { id: 'finance', name: '금융/재테크' },
+  { id: 'selfdev', name: '자기계발/생산성' },
+  { id: 'pets', name: '반려동물' },
+  { id: 'media', name: '영화/드라마' },
+  { id: 'health', name: '건강/피트니스' },
+  { id: 'kids', name: '키즈/패밀리' },
+  { id: 'culture', name: '문화/예술' }
 ];
 
 // Mock database of countries

@@ -612,9 +612,9 @@ export default function TrendReportView() {
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-zinc-50 flex items-center gap-2">
               <FileText className="text-blue-500" size={28} />
-              분야별 트렌드 분석 보고서
+              분야별 AI 분석 보고서
             </h1>
-            <p className="text-zinc-400 text-sm mt-1">유튜브 특정 카테고리를 대상으로 썸네일, 영상 길이, 가용 키워드 및 업로드 시점을 입체적으로 조망합니다.</p>
+            <p className="text-zinc-400 text-sm mt-1">유튜브 특정 카테고리를 대상으로 AI 예측 모델과 시각 통계를 활용해 썸네일, 영상 길이, 키워드 및 업로드 시점을 입체적으로 조망합니다.</p>
           </div>
           
           {/* Global Country selector */}

@@ -60,12 +60,65 @@ const CATEGORY_MAP = {
 
 const SUGGESTED_KEYWORDS = ['인공지능', '캠핑', '아이폰', '재테크', '해외여행', '스마트폰'];
 
+// Heuristic keyword-to-category parser
+const detectCategoryFromKeyword = (keyword) => {
+  const kw = keyword.toLowerCase().trim();
+  if (!kw) return null;
+
+  // 1. Music (음악)
+  if (kw.includes('음악') || kw.includes('노래') || kw.includes('뮤직') || kw.includes('아이돌') || kw.includes('곡') || kw.includes('가수') || kw.includes('커버') || kw.includes('mv') || kw.includes('노래방')) {
+    return '10';
+  }
+  // 2. Gaming (게임)
+  if (kw.includes('게임') || kw.includes('롤') || kw.includes('배그') || kw.includes('마인크래프트') || kw.includes('플레이') || kw.includes('game') || kw.includes('닌텐도') || kw.includes('스팀') || kw.includes('모바일게임')) {
+    return '20';
+  }
+  // 3. Tech & Science (과학기술)
+  if (kw.includes('ai') || kw.includes('인공지능') || kw.includes('테크') || kw.includes('it') || kw.includes('컴퓨터') || kw.includes('과학') || kw.includes('기술') || kw.includes('개발') || kw.includes('코딩') || kw.includes('스마트폰') || kw.includes('아이폰') || kw.includes('갤럭시') || kw.includes('반도체') || kw.includes('디바이스') || kw.includes('노트북') || kw.includes('맥북')) {
+    return '28';
+  }
+  // 4. Education (교육)
+  if (kw.includes('교육') || kw.includes('공부') || kw.includes('영어') || kw.includes('역사') || kw.includes('강의') || kw.includes('지식') || kw.includes('책') || kw.includes('학습') || kw.includes('수학') || kw.includes('인문학')) {
+    return '27';
+  }
+  // 5. Sports (스포츠)
+  if (kw.includes('스포츠') || kw.includes('축구') || kw.includes('야구') || kw.includes('농구') || kw.includes('골프') || kw.includes('헬스') || kw.includes('운동') || kw.includes('피트니스') || kw.includes('트레이닝') || kw.includes('국가대표')) {
+    return '17';
+  }
+  // 6. Finance & Money (금융 & 재테크)
+  if (kw.includes('재테크') || kw.includes('주식') || kw.includes('코인') || kw.includes('투자') || kw.includes('부동산') || kw.includes('돈') || kw.includes('금융') || kw.includes('경제') || kw.includes('자산') || kw.includes('은행')) {
+    return 'finance';
+  }
+  // 7. Travel & Outdoors (여행 & 아웃도어)
+  if (kw.includes('여행') || kw.includes('캠핑') || kw.includes('관광') || kw.includes('휴가') || kw.includes('제주') || kw.includes('해외여행') || kw.includes('호텔') || kw.includes('글램핑') || kw.includes('vlog') || kw.includes('브이로그')) {
+    return 'travel';
+  }
+  // 8. Food & Cooking (푸드 & 쿠킹)
+  if (kw.includes('요리') || kw.includes('먹방') || kw.includes('푸드') || kw.includes('맛집') || kw.includes('레시피') || kw.includes('음식') || kw.includes('식당') || kw.includes('디저트') || kw.includes('베이킹')) {
+    return 'cooking';
+  }
+  // 9. Art & Culture (문화 & 예술)
+  if (kw.includes('미술') || kw.includes('예술') || kw.includes('그림') || kw.includes('디자인') || kw.includes('전시') || kw.includes('문화') || kw.includes('사진') || kw.includes('공예') || kw.includes('뮤지컬') || kw.includes('오케스트라')) {
+    return 'culture';
+  }
+  // 10. Beauty & Fashion (뷰티 & 패션)
+  if (kw.includes('뷰티') || kw.includes('패션') || kw.includes('메이크업') || kw.includes('화장') || kw.includes('스킨케어') || kw.includes('스타일') || kw.includes('코디') || kw.includes('룩북')) {
+    return 'beauty';
+  }
+
+  // Fallback default: Entertainment
+  return '24';
+};
+
 export default function KeywordSearchView() {
   const [query, setQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
+
+  // Automatically detected category state
+  const [detectedCategory, setDetectedCategory] = useState(null);
   
   // Aggregate Stats
   const [stats, setStats] = useState({
@@ -123,6 +176,10 @@ export default function KeywordSearchView() {
     setCurrentPage(1);
     setActiveQuery(searchQuery);
     if (!keywordOverride) setQuery(searchQuery);
+
+    // Auto-detect related category
+    const matchedCategory = detectCategoryFromKeyword(searchQuery);
+    setDetectedCategory(matchedCategory);
 
     try {
       const data = await fetchVideosByKeyword(searchQuery);
@@ -264,12 +321,6 @@ export default function KeywordSearchView() {
       setSummaryLoadedFor(selectedVideo.id);
       setLoadingSummary(false);
     }, 1200);
-  };
-
-  const formatNumber = (num) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
   };
 
   const formatDate = (isoString) => {
@@ -447,30 +498,53 @@ export default function KeywordSearchView() {
           <p className="text-zinc-400 text-sm mt-1">분석하고 싶은 검색어를 입력하면 전역 유튜브 관련 콘텐츠 분포와 성과 통계를 추출합니다.</p>
         </div>
         
-        {/* Large glassmorphic keyword search bar, moved below the header title */}
-        <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full max-w-xl">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3.5 top-3 text-zinc-400" size={18} />
-            <input
-              type="text"
-              placeholder="예: AI, 캠핑, 스마트폰, 재테크..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg pl-11 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200 placeholder-zinc-500"
-            />
-          </div>
-          <button 
-            type="submit"
-            disabled={loading}
-            className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-800 text-white rounded-lg px-6 font-semibold text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
-          >
-            {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-            ) : (
-              '분석'
-            )}
-          </button>
-        </form>
+        {/* Large glassmorphic keyword search bar */}
+        <div className="space-y-3">
+          <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full max-w-xl">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3.5 top-3.5 text-zinc-400" size={18} />
+              <input
+                type="text"
+                placeholder="예: AI, 캠핑, 스마트폰, 재테크..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg pl-11 pr-3 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200 placeholder-zinc-500 font-sans"
+              />
+            </div>
+            <button 
+              type="submit"
+              disabled={loading}
+              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-800 text-white rounded-lg px-7 font-bold text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              {loading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              ) : (
+                '분석'
+              )}
+            </button>
+          </form>
+
+          {/* AI Category Auto-Detection Notification */}
+          {detectedCategory && CATEGORY_MAP[detectedCategory] && (
+            <div className="flex items-center gap-2 pl-1 animate-fade-in">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles size={11} className="text-yellow-500/80 fill-yellow-500/10" />
+                AI 자동 카테고리 매칭:
+              </span>
+              <span 
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-colors duration-300"
+                style={{
+                  backgroundColor: `${CATEGORY_MAP[detectedCategory].color}12`,
+                  borderColor: `${CATEGORY_MAP[detectedCategory].color}25`,
+                  color: CATEGORY_MAP[detectedCategory].color
+                }}
+              >
+                {React.createElement(CATEGORY_MAP[detectedCategory].icon, { size: 12 })}
+                {CATEGORY_MAP[detectedCategory].name}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {videos.apiError && (
@@ -920,7 +994,7 @@ export default function KeywordSearchView() {
               ></iframe>
             </div>
             <div className="p-4 bg-zinc-950 border-t border-zinc-850 flex justify-between items-center text-xs text-zinc-400">
-              <span className="font-semibold text-zinc-300 truncate max-w-md">{selectedVideo.title}</span>
+              <span className="font-semibold text-zinc-300 truncate max-w-md">{selectedVideo?.title}</span>
               <button 
                 onClick={() => setPlayVideoId(null)}
                 className="bg-zinc-850 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded font-medium cursor-pointer"
