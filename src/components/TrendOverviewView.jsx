@@ -60,6 +60,8 @@ const CATEGORY_MAP = {
 
 export default function TrendOverviewView() {
   const [country, setCountryState] = useState('KR');
+  // Default selected categories (max 5)
+  const [selectedCategories, setSelectedCategories] = useState(['10', '20', '24', '27', '28']); 
   const [loading, setLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
@@ -99,7 +101,6 @@ export default function TrendOverviewView() {
     try {
       const data = await fetchTrendingVideos('all');
       setVideos(data);
-      processTrendData(data);
     } catch (err) {
       setError(err.message || '트렌드 데이터를 분석하는데 실패했습니다.');
     } finally {
@@ -113,39 +114,32 @@ export default function TrendOverviewView() {
     // 1. Grouping by Category
     const categoryStats = {};
     
-    // Initialize default categories to ensure they show up in comparison
-    Object.keys(CATEGORY_MAP).forEach(catId => {
-      categoryStats[catId] = {
-        id: catId,
-        name: CATEGORY_MAP[catId].name,
-        color: CATEGORY_MAP[catId].color,
-        count: 0,
-        totalViews: 0,
-        totalER: 0,
-        videos: []
-      };
-    });
-
-    videoList.forEach(video => {
-      const catId = video.categoryId || '24'; // fallback to entertainment
-      if (!categoryStats[catId]) {
+    // Initialize ONLY selected categories to ensure comparison is restricted to selection
+    selectedCategories.forEach(catId => {
+      if (CATEGORY_MAP[catId]) {
         categoryStats[catId] = {
           id: catId,
-          name: CATEGORY_MAP[catId]?.name || `기타 (${catId})`,
-          color: CATEGORY_MAP[catId]?.color || '#64748b',
+          name: CATEGORY_MAP[catId].name,
+          color: CATEGORY_MAP[catId].color,
           count: 0,
           totalViews: 0,
           totalER: 0,
           videos: []
         };
       }
-      categoryStats[catId].count += 1;
-      categoryStats[catId].totalViews += video.views;
-      categoryStats[catId].totalER += video.engagementRate;
-      categoryStats[catId].videos.push(video);
     });
 
-    // Filter out categories with 0 videos (unless they are defined in CATEGORY_MAP, where we keep them for overview if needed, but for charts we filter)
+    videoList.forEach(video => {
+      const catId = video.categoryId || '24'; // fallback
+      if (categoryStats[catId]) {
+        categoryStats[catId].count += 1;
+        categoryStats[catId].totalViews += video.views;
+        categoryStats[catId].totalER += video.engagementRate;
+        categoryStats[catId].videos.push(video);
+      }
+    });
+
+    // Filter out categories with 0 videos inside our selection (though we initialized, we only want to plot if count > 0)
     const activeCategories = Object.values(categoryStats).filter(cat => cat.count > 0);
 
     // Sort active categories by share count
@@ -168,7 +162,7 @@ export default function TrendOverviewView() {
       topCategory: sortedByCount[0] ? { name: sortedByCount[0].name, count: sortedByCount[0].count } : { name: 'N/A', count: 0 },
       topViewsCategory: sortedByViews[0] ? { name: sortedByViews[0].name, views: sortedByViews[0].avgViews } : { name: 'N/A', views: 0 },
       topEngagementCategory: sortedByER[0] ? { name: sortedByER[0].name, rate: sortedByER[0].avgER } : { name: 'N/A', rate: 0 },
-      totalAnalyzed: videoList.length
+      totalAnalyzed: videoList.filter(v => selectedCategories.includes(v.categoryId || '24')).length
     });
 
     // 3. Share Data (Pie Chart)
@@ -187,12 +181,11 @@ export default function TrendOverviewView() {
       colors: processedCats.map(c => c.color)
     });
 
-    // 5. Get Top Video of each major category (limit to registered in CATEGORY_MAP)
+    // 5. Get Top Video of each major category (limit to registered in CATEGORY_MAP & selectedCategories)
     const topVideos = [];
-    Object.keys(CATEGORY_MAP).forEach(catId => {
+    selectedCategories.forEach(catId => {
       const catObj = categoryStats[catId];
       if (catObj && catObj.videos.length > 0) {
-        // Sort videos inside category by views descending to find the #1 video
         const sortedVids = [...catObj.videos].sort((a, b) => b.views - a.views);
         topVideos.push({
           categoryName: catObj.name,
@@ -203,7 +196,6 @@ export default function TrendOverviewView() {
         });
       }
     });
-    // Sort top videos by overall view count to present beautifully
     topVideos.sort((a, b) => b.views - a.views);
     setTopVideosPerCategory(topVideos);
   };
@@ -221,8 +213,15 @@ export default function TrendOverviewView() {
     setSummaryData(null);
     setSummaryLoadedFor(null);
     setDrawerTab('info');
-    setPlayVideoId(null); // Reset player
+    setPlayVideoId(null);
   }, [country]);
+
+  // Re-run processing when selectedCategories or videos raw data changes
+  useEffect(() => {
+    if (videos.length > 0) {
+      processTrendData(videos);
+    }
+  }, [selectedCategories, videos]);
 
   // Esc key down listener for video modal
   useEffect(() => {
@@ -445,8 +444,8 @@ export default function TrendOverviewView() {
   return (
     <div className="space-y-6">
       {/* Top Banner and Country Filter */}
-      <div className="border-b border-zinc-800 pb-6 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="border-b border-zinc-800 pb-6 flex flex-col gap-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-zinc-50 flex items-center gap-2">
               <TrendingUp className="text-blue-500" size={28} />
@@ -472,6 +471,50 @@ export default function TrendOverviewView() {
                 {c.code}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Multi-Select Category Filters (Max 5) */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">비교 분석 카테고리 선택 (최대 5개)</span>
+            <span className="text-xs text-blue-400 font-semibold font-mono">{selectedCategories.length}/5 선택됨</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.keys(CATEGORY_MAP).map((catId) => {
+              const catObj = CATEGORY_MAP[catId];
+              const isSelected = selectedCategories.includes(catId);
+              const isMaxSelected = selectedCategories.length >= 5;
+              const disabled = !isSelected && isMaxSelected;
+              return (
+                <button
+                  key={catId}
+                  disabled={disabled}
+                  onClick={() => {
+                    if (isSelected) {
+                      if (selectedCategories.length > 1) {
+                        setSelectedCategories(selectedCategories.filter(id => id !== catId));
+                      }
+                    } else {
+                      if (selectedCategories.length < 5) {
+                        setSelectedCategories([...selectedCategories, catId]);
+                      }
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5
+                    ${isSelected
+                      ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 font-bold shadow-sm'
+                      : disabled
+                        ? 'bg-zinc-950/20 border-zinc-900 text-zinc-600 cursor-not-allowed opacity-50'
+                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                    }
+                  `}
+                >
+                  {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>}
+                  {catObj.name}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
