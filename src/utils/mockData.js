@@ -378,3 +378,66 @@ export const getMockChannelData = (channelNameOrUrl) => {
     }
   };
 };
+
+export const getMockKeywordSearch = (query, country) => {
+  const cName = country || 'KR';
+  const keyword = query || '유튜브';
+
+  const channels = {
+    KR: ['테크가이드', '뉴스토픽', '엔터웨이브', '게임연구소', '머니머니', '공부방'],
+    US: ['TechPulse', 'NewsFlash', 'EntZone', 'GamingLab', 'FinancePro', 'StudyHub'],
+    JP: ['テックTV', '速報ニュース', 'エンタメ広場', 'ゲーム実況ch', 'マネーch', '勉強ナビ'],
+    GB: ['TechSpot', 'DailyNews', 'Showbiz', 'GameOn', 'WealthWise', 'LearnFast'],
+    DE: ['TechWelle', 'BlitzNews', 'ShowTime', 'SpielZone', 'FinanzNetz', 'LernEcke']
+  };
+
+  const activeChannels = channels[cName] || channels.KR;
+
+  const categories = ['10', '20', '24', '27', '28', '17'];
+  const categoryNames = {
+    '10': '음악',
+    '20': '게임',
+    '24': '엔터테인먼트',
+    '27': '교육',
+    '28': '과학기술',
+    '17': '스포츠'
+  };
+
+  const templates = [
+    { title: `실시간 핫한 "${keyword}" 트렌드와 현상 분석`, cat: '24' },
+    { title: `최초 공개! "${keyword}" 충격적인 실제 현장 리뷰`, cat: '28' },
+    { title: `많은 사람들이 모르는 "${keyword}"의 유용한 꿀팁 Top 5`, cat: '27' },
+    { title: `드디어 탄생한 "${keyword}" 역대급 플레이 모음집`, cat: '20' },
+    { title: `중독성 장난 아닌 "${keyword}" 관련 노동요 연속 듣기`, cat: '10' },
+    { title: `전설적인 선수가 극찬한 "${keyword}" 레전드 활약`, cat: '17' }
+  ];
+
+  const videos = Array.from({ length: 50 }).map((_, idx) => {
+    const template = templates[idx % templates.length];
+    const category = template.cat;
+    const title = `[${categoryNames[category]}] ${template.title.replace(keyword, keyword + ' #' + (idx + 1))}`;
+
+    const views = randomRange(50000, 2500000) - (idx * 20000);
+    const viewsClean = Math.max(views, 15000);
+    const likes = Math.floor(viewsClean * (randomRange(3, 9) / 100));
+    const commentsCount = Math.floor(viewsClean * (randomRange(2, 6) / 1000));
+    const publishedAt = new Date(Date.now() - idx * 2 * 60 * 60 * 1000).toISOString();
+
+    return {
+      id: `search_vid_${cName}_${idx}`,
+      rank: idx + 1,
+      title,
+      channelTitle: activeChannels[idx % activeChannels.length],
+      thumbnail: `https://picsum.photos/seed/search_${cName}_${idx}/640/360`,
+      publishedAt,
+      views: viewsClean,
+      likes,
+      comments: commentsCount,
+      duration: randomRange(180, 1500),
+      categoryId: category,
+      engagementRate: parseFloat(((likes + commentsCount) / viewsClean * 100).toFixed(2))
+    };
+  });
+
+  return videos;
+};

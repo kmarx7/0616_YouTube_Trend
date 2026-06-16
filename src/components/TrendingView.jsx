@@ -27,7 +27,8 @@ import {
   fetchTrendingVideos, 
   getCountry, 
   setCountry, 
-  fetchComments 
+  fetchComments,
+  fetchVideosByKeyword
 } from '../utils/youtubeService';
 import { YOUTUBE_CATEGORIES, YOUTUBE_COUNTRIES } from '../utils/mockData';
 
@@ -38,8 +39,9 @@ export default function TrendingView() {
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
   
-  // Search within category list
-  const [searchTerm, setSearchTerm] = useState('');
+  // Global YouTube API Search query & status
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
   
   // Detail Panel & Comments state
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -81,6 +83,10 @@ export default function TrendingView() {
   }, []);
 
   useEffect(() => {
+    if (isSearchActive) {
+      setGlobalSearchQuery('');
+      setIsSearchActive(false);
+    }
     loadData();
     setSelectedVideo(null);
     setComments([]);
@@ -89,8 +95,32 @@ export default function TrendingView() {
     setSummaryLoadedFor(null);
     setDrawerTab('info');
     setCurrentPage(1);
-    setSearchTerm(''); // Reset search on category/country change
   }, [country, category]);
+
+  const handleGlobalSearch = async (e) => {
+    if (e) e.preventDefault();
+    if (!globalSearchQuery.trim()) return;
+
+    setLoading(true);
+    setError(null);
+    setSelectedVideo(null);
+    setCurrentPage(1);
+    try {
+      const data = await fetchVideosByKeyword(globalSearchQuery);
+      setVideos(data);
+      setIsSearchActive(true);
+    } catch (err) {
+      setError(err.message || '검색 결과를 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSearch = () => {
+    setGlobalSearchQuery('');
+    setIsSearchActive(false);
+    loadData();
+  };
 
   const handleCountryChange = (code) => {
     setCountry(code);
@@ -218,18 +248,11 @@ export default function TrendingView() {
     };
   };
 
-  // Local Search Filter
-  const filteredVideos = videos.filter(video => {
-    const term = searchTerm.toLowerCase().trim();
-    if (!term) return true;
-    return video.title.toLowerCase().includes(term) || video.channelTitle.toLowerCase().includes(term);
-  });
-
-  // Pagination based on filtered results
-  const totalPages = Math.ceil(filteredVideos.length / itemsPerPage);
+  // Pagination based on search or trending results
+  const totalPages = Math.ceil(videos.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVideos = filteredVideos.slice(indexOfFirstItem, indexOfLastItem);
+  const currentVideos = videos.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-6">
@@ -300,38 +323,39 @@ export default function TrendingView() {
           <div className="p-6 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/10">
             <div>
               <h3 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                급상승 순위 목록
+                {isSearchActive ? `"${globalSearchQuery}" 검색 결과` : '급상승 순위 목록'}
               </h3>
-              <span className="text-xs text-zinc-500 font-mono">Showing {filteredVideos.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, filteredVideos.length)} of {filteredVideos.length}</span>
+              <span className="text-xs text-zinc-500 font-mono">Showing {videos.length > 0 ? indexOfFirstItem + 1 : 0}-{Math.min(indexOfLastItem, videos.length)} of {videos.length}</span>
             </div>
 
-            {/* Local Search Input within Category */}
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 text-zinc-500" size={16} />
+            {/* Global YouTube API Search */}
+            <form onSubmit={handleGlobalSearch} className="relative w-full sm:w-64">
+              <button type="submit" className="absolute left-3 top-2.5 text-zinc-500 hover:text-zinc-300 cursor-pointer">
+                <Search size={16} />
+              </button>
               <input
                 type="text"
-                placeholder="현재 목록 내 검색 (제목, 채널)..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset page on type
-                }}
-                className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200"
+                placeholder="유튜브 키워드 전역 검색..."
+                value={globalSearchQuery}
+                onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-850 rounded-lg pl-9 pr-8 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-200"
               />
-              {searchTerm && (
+              {(globalSearchQuery || isSearchActive) && (
                 <button 
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300"
+                  type="button"
+                  onClick={handleResetSearch}
+                  className="absolute right-3 top-2.5 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                  title="검색 초기화 (급상승 순위 복원)"
                 >
                   <X size={14} />
                 </button>
               )}
-            </div>
+            </form>
           </div>
 
           {loading ? (
             <div className="p-20 text-center text-zinc-500 font-mono">로딩 중...</div>
-          ) : filteredVideos.length === 0 ? (
+          ) : videos.length === 0 ? (
             <div className="p-20 text-center text-zinc-500">검색어 및 카테고리에 해당하는 급상승 영상이 없습니다.</div>
           ) : (
             <div className="overflow-x-auto">

@@ -5,7 +5,8 @@ import {
   getMockTrendingTop100, 
   getMockEducationTop30, 
   getMockChannelData, 
-  generateMockComments 
+  generateMockComments,
+  getMockKeywordSearch
 } from './mockData';
 
 const KEY_STORAGE = 'tubepulse_api_key';
@@ -351,5 +352,75 @@ export const fetchChannelData = async (query) => {
       ...getMockChannelData(query),
       apiError: e.message
     };
+  }
+};
+
+// Fetch Videos globally by keyword
+export const fetchVideosByKeyword = async (query) => {
+  const apiKey = getApiKey();
+  const country = getCountry();
+
+  if (!apiKey) {
+    return getMockKeywordSearch(query, country);
+  }
+
+  try {
+    // 1. Search endpoint to get Video IDs
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q=${encodeURIComponent(query)}&type=video&regionCode=${country}&key=${apiKey}`;
+    const searchRes = await fetch(searchUrl);
+    if (!searchRes.ok) throw new Error(`Keyword Search failed: ${searchRes.statusText}`);
+    const searchData = await searchRes.json();
+
+    const items = searchData.items || [];
+    if (items.length === 0) return [];
+
+    const videoIds = items.map(item => item.id.videoId).filter(Boolean).join(',');
+    if (!videoIds) return [];
+
+    // 2. Videos endpoint to resolve detailed statistics (views, likes, category, duration)
+    const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${apiKey}`;
+    const videosRes = await fetch(videosUrl);
+    if (!videosRes.ok) throw new Error(`Videos detail fetch failed: ${videosRes.statusText}`);
+    const videosData = await videosRes.json();
+
+    const detailItems = videosData.items || [];
+    
+    // Map to normalized data structure
+    return detailItems.map((item, idx) => {
+      const views = parseInt(item.statistics?.viewCount) || 0;
+      const likes = parseInt(item.statistics?.likeCount) || 0;
+      const commentsCount = parseInt(item.statistics?.commentCount) || 0;
+      
+      let durationSec = 600;
+      try {
+        const matches = item.contentDetails?.duration?.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+        if (matches) {
+          const hours = parseInt(matches[1] || 0);
+          const minutes = parseInt(matches[2] || 0);
+          const seconds = parseInt(matches[3] || 0);
+          durationSec = (hours * 3600) + (minutes * 60) + seconds;
+        }
+      } catch (e) {}
+
+      return {
+        id: item.id,
+        rank: idx + 1,
+        title: item.snippet.title,
+        channelTitle: item.snippet.channelTitle,
+        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.high?.url || '',
+        publishedAt: item.snippet.publishedAt,
+        views,
+        likes,
+        comments: commentsCount,
+        duration: durationSec,
+        categoryId: item.snippet.categoryId,
+        engagementRate: views > 0 ? parseFloat((((likes + commentsCount) / views) * 100).toFixed(2)) : 0
+      };
+    });
+  } catch (e) {
+    console.error('API keyword search failed, falling back to mock data', e);
+    const mockData = getMockKeywordSearch(query, country);
+    mockData.apiError = e.message;
+    return mockData;
   }
 };
