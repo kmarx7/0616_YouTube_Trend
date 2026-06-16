@@ -13,7 +13,7 @@ const COUNTRY_STORAGE = 'tubepulse_country';
 
 export const getApiKey = () => {
   if (typeof window === 'undefined') return '';
-  return localStorage.getItem(KEY_STORAGE) || '';
+  return localStorage.getItem(KEY_STORAGE) || process.env.NEXT_PUBLIC_YOUTUBE_API_KEY || '';
 };
 
 export const setApiKey = (key) => {
