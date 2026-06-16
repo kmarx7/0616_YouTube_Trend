@@ -3,19 +3,22 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import DashboardView from '../components/DashboardView';
+import TrendOverviewView from '../components/TrendOverviewView';
 import TrendingView from '../components/TrendingView';
 import EducationView from '../components/EducationView';
 import CompetitorsView from '../components/CompetitorsView';
 import SettingsView from '../components/SettingsView';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('trend-overview'); // Set default to overview to meet user's requirement
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const renderActiveView = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardView />;
+      case 'trend-overview':
+        return <TrendOverviewView />;
       case 'trending':
         return <TrendingView />;
       case 'education':
@@ -25,7 +28,7 @@ export default function Home() {
       case 'settings':
         return <SettingsView />;
       default:
-        return <DashboardView />;
+        return <TrendOverviewView />;
     }
   };
 
